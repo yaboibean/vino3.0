@@ -1,0 +1,8 @@
+Flask==3.0.3
+openai
+faiss-cpu
+numpy
+python-dotenv
+
+gunicorn==21.2.0
+requests
