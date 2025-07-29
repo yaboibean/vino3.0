@@ -184,8 +184,9 @@ def ask():
 
         # Combine results (union)
         combined_idxs = list(vector_chunks | keyword_chunks)
-        # Sort by vector similarity if possible
-        combined_idxs = sorted(combined_idxs, key=lambda x: D[0].tolist().index(x) if x in I[0] else len(D[0]))
+        # Fix type mismatch: cast FAISS indices to int
+        I0_ints = [int(i) for i in I[0]]
+        combined_idxs = sorted(combined_idxs, key=lambda x: I0_ints.index(x) if x in I0_ints else len(D[0]))
 
         # Get up to 5 relevant chunks
         relevant_chunks = []
