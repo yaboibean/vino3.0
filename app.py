@@ -168,22 +168,34 @@ def ask():
         logger.info(f"❓ Received question: {query}")
 
         query_embedding = embed_query(query)
-        
-        D, I = index.search(np.array([query_embedding]), k=3)  # Reduced to 3 for maximum speed
-        
-        # Get top 3 chunks directly - skip recency bias for speed
-        relevant_chunks = []
+        D, I = index.search(np.array([query_embedding]), k=3)
+        # Vector search results
+        vector_chunks = set()
         for idx in I[0]:
             if idx < len(chunks):
-                chunk = chunks[idx]
-                # Truncate chunks to reduce context size and speed up GPT
-                truncated_chunk = chunk[:800] + "..." if len(chunk) > 800 else chunk
-                relevant_chunks.append(truncated_chunk)
-        
+                vector_chunks.add(idx)
+
+        # Keyword search results
+        keyword_chunks = set()
+        query_lower = query.lower()
+        for i, chunk in enumerate(chunks):
+            if query_lower in chunk.lower():
+                keyword_chunks.add(i)
+
+        # Combine results (union)
+        combined_idxs = list(vector_chunks | keyword_chunks)
+        # Sort by vector similarity if possible
+        combined_idxs = sorted(combined_idxs, key=lambda x: D[0].tolist().index(x) if x in I[0] else len(D[0]))
+
+        # Get up to 5 relevant chunks
+        relevant_chunks = []
+        for idx in combined_idxs[:5]:
+            chunk = chunks[idx]
+            truncated_chunk = chunk[:800] + "..." if len(chunk) > 800 else chunk
+            relevant_chunks.append(truncated_chunk)
+
         relevant = "\n\n".join(relevant_chunks)
         logger.info(f"📝 Using {len(relevant_chunks)} relevant chunks, total length: {len(relevant)} chars")
-        
-        # Log relevant content preview
         if relevant:
             preview = relevant[:200].replace('\n', ' ')
             logger.info(f"📋 Relevant content preview: {preview}...")
@@ -341,16 +353,12 @@ def validate_question_has_good_answer(question):
         
         # Generate embedding for the question
         query_embedding = embed_query(question)
-        
-        # Search for relevant content
         D, I = index.search(np.array([query_embedding]), k=3)
-        
-        # Check if we have good matches (distance threshold)
-        # Lower distance = better match
-        if len(D[0]) > 0 and D[0][0] < 1.2:  # Adjust threshold as needed
-            return True
-        
-        return False
+        # Vector search
+        vector_match = len(D[0]) > 0 and D[0][0] < 1.2
+        # Keyword search
+        keyword_match = any(question.lower() in chunk.lower() for chunk in chunks)
+        return vector_match or keyword_match
         
     except Exception as e:
         logger.warning(f"⚠️  Error validating question '{question}': {str(e)}")
