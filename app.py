@@ -181,14 +181,8 @@ def ask():
                 relevant_chunks.append(truncated_chunk)
         
         relevant = "\n\n".join(relevant_chunks)
-        logger.info(f"📝 Using {len(relevant_chunks)} relevant chunks, total length: {len(relevant)} chars")
         
         # Log relevant content preview
-        if relevant:
-            preview = relevant[:200].replace('\n', ' ')
-            logger.info(f"📋 Relevant content preview: {preview}...")
-        else:
-            logger.warning("⚠️  No relevant content found!")
 
         prompt = f"""You are a helpful wine expert assistant answering questions based on wine magazine content.
 
