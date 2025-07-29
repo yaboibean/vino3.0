@@ -7,7 +7,6 @@ import pickle
 import logging
 import os
 from dotenv import load_dotenv
-from rapidfuzz import fuzz
 
 # Configure logging
 logging.basicConfig(
@@ -169,46 +168,22 @@ def ask():
         logger.info(f"❓ Received question: {query}")
 
         query_embedding = embed_query(query)
-        D, I = index.search(np.array([query_embedding]), k=3)
-        # Vector search results
-        vector_chunks = set()
+        
+        D, I = index.search(np.array([query_embedding]), k=3)  # Reduced to 3 for maximum speed
+        
+        # Get top 3 chunks directly - skip recency bias for speed
+        relevant_chunks = []
         for idx in I[0]:
             if idx < len(chunks):
-                vector_chunks.add(idx)
-
-        # Keyword and fuzzy search results (optimized)
-        keyword_chunks = set()
-        query_lower = query.lower()
-        # Only check the first 500 chunks for fuzzy match to speed up
-        for i, chunk in enumerate(chunks[:500]):
-            chunk_lower = chunk.lower()
-            # Exact match
-            if query_lower in chunk_lower:
-                keyword_chunks.add(i)
-            # Fuzzy match (lower threshold for speed, e.g. 70)
-            elif fuzz.partial_ratio(query_lower, chunk_lower) >= 70:
-                keyword_chunks.add(i)
-
-        # Combine results (union)
-        combined_idxs = list(vector_chunks | keyword_chunks)
-        # If no results, fallback to pure fuzzy keyword search
-        if not combined_idxs:
-            for i, chunk in enumerate(chunks):
-                chunk_lower = chunk.lower()
-                if query_lower in chunk_lower or fuzz.partial_ratio(query_lower, chunk_lower) >= 80:
-                    combined_idxs.append(i)
-        # Fix type mismatch: cast FAISS indices to int
-        I0_ints = [int(i) for i in I[0]]
-        combined_idxs = sorted(combined_idxs, key=lambda x: I0_ints.index(x) if x in I0_ints else len(D[0]))
-
-        # Get up to 5 relevant chunks (full text, not truncated)
-        relevant_chunks = []
-        for idx in combined_idxs[:5]:
-            chunk = chunks[idx]
-            relevant_chunks.append(chunk)
-
-        relevant = "\n\n".join([chunk[:800] + "..." if len(chunk) > 800 else chunk for chunk in relevant_chunks])
+                chunk = chunks[idx]
+                # Truncate chunks to reduce context size and speed up GPT
+                truncated_chunk = chunk[:800] + "..." if len(chunk) > 800 else chunk
+                relevant_chunks.append(truncated_chunk)
+        
+        relevant = "\n\n".join(relevant_chunks)
         logger.info(f"📝 Using {len(relevant_chunks)} relevant chunks, total length: {len(relevant)} chars")
+        
+        # Log relevant content preview
         if relevant:
             preview = relevant[:200].replace('\n', ' ')
             logger.info(f"📋 Relevant content preview: {preview}...")
@@ -244,11 +219,7 @@ Be direct and focused - provide depth without being wordy."""
         logger.info(f"✅ Generated answer: {answer[:100]}...")
         
         # Preserve formatting by not modifying the response
-        return jsonify({
-            "answer": answer,
-            "relevant": relevant,
-            "debug_chunks": relevant_chunks
-        })
+        return jsonify({"answer": answer})
 
     except Exception as e:
         logger.error(f"❌ Error in ask endpoint: {str(e)}")
@@ -370,12 +341,16 @@ def validate_question_has_good_answer(question):
         
         # Generate embedding for the question
         query_embedding = embed_query(question)
+        
+        # Search for relevant content
         D, I = index.search(np.array([query_embedding]), k=3)
-        # Vector search
-        vector_match = len(D[0]) > 0 and D[0][0] < 1.2
-        # Keyword search
-        keyword_match = any(question.lower() in chunk.lower() for chunk in chunks)
-        return vector_match or keyword_match
+        
+        # Check if we have good matches (distance threshold)
+        # Lower distance = better match
+        if len(D[0]) > 0 and D[0][0] < 1.2:  # Adjust threshold as needed
+            return True
+        
+        return False
         
     except Exception as e:
         logger.warning(f"⚠️  Error validating question '{question}': {str(e)}")
