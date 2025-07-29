@@ -176,16 +176,17 @@ def ask():
             if idx < len(chunks):
                 vector_chunks.add(idx)
 
-        # Keyword and fuzzy search results
+        # Keyword and fuzzy search results (optimized)
         keyword_chunks = set()
         query_lower = query.lower()
-        for i, chunk in enumerate(chunks):
+        # Only check the first 500 chunks for fuzzy match to speed up
+        for i, chunk in enumerate(chunks[:500]):
             chunk_lower = chunk.lower()
             # Exact match
             if query_lower in chunk_lower:
                 keyword_chunks.add(i)
-            # Fuzzy match (threshold 80)
-            elif fuzz.partial_ratio(query_lower, chunk_lower) >= 80:
+            # Fuzzy match (lower threshold for speed, e.g. 70)
+            elif fuzz.partial_ratio(query_lower, chunk_lower) >= 70:
                 keyword_chunks.add(i)
 
         # Combine results (union)
