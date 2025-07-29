@@ -198,12 +198,13 @@ Here is relevant context from the wine magazines:
 Question: {query}
 
 Instructions:
-- Keep responses concise but informative (2-4 paragraphs max)
+- Keep responses concise but informative and specific (2-4 paragraphs unless the question is very complex)
+- Wherever appropriate use the names of specific wines, regions, and terminology
 - Use bullet points for key information
-- Include specific wine terminology and expert insights
-- Quote directly from magazines when relevant (use quotation marks)
+- Try to quote directly from magazines when relevant (use quotation marks)
 - If magazines don't contain specific info, state this briefly
 - End with source citations: "Sommelier India, <issue number>, <year>"
+- Make sure you contain ZERO bold, italics, or other formatting.
 
 Be direct and focused - provide depth without being wordy."""
 
@@ -218,7 +219,7 @@ Be direct and focused - provide depth without being wordy."""
         logger.info(f"✅ Generated answer: {answer[:100]}...")
         
         # Preserve formatting by not modifying the response
-        return jsonify({"answer": answer})
+        return jsonify({"answer": answer, "relevant": relevant})
 
     except Exception as e:
         logger.error(f"❌ Error in ask endpoint: {str(e)}")
