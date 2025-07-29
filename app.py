@@ -232,7 +232,11 @@ Be direct and focused - provide depth without being wordy."""
         logger.info(f"✅ Generated answer: {answer[:100]}...")
         
         # Preserve formatting by not modifying the response
-        return jsonify({"answer": answer, "relevant": relevant})
+        return jsonify({
+            "answer": answer,
+            "relevant": relevant,
+            "debug_chunks": relevant_chunks
+        })
 
     except Exception as e:
         logger.error(f"❌ Error in ask endpoint: {str(e)}")
