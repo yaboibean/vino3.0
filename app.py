@@ -204,7 +204,7 @@ Be direct and focused - provide depth without being wordy."""
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=400,  # Further reduced for maximum speed
-            temperature=0.3
+            temperature=0.9
         )
 
         answer = response.choices[0].message.content
