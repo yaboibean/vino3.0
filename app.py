@@ -361,5 +361,6 @@ if __name__ == "__main__":
         logger.error("❌ System not properly initialized. Please run extract_and_index.py first!")
     else:
         logger.info("✅ System ready!")
-    app.run(host="0.0.0.0", port=8010)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
     logger.info("🌐 Running on http://0.0.0.0:8010")
