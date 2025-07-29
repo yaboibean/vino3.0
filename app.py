@@ -7,6 +7,7 @@ import pickle
 import logging
 import os
 from dotenv import load_dotenv
+from rapidfuzz import fuzz
 
 # Configure logging
 logging.basicConfig(
@@ -175,19 +176,25 @@ def ask():
             if idx < len(chunks):
                 vector_chunks.add(idx)
 
-        # Keyword search results
+        # Keyword and fuzzy search results
         keyword_chunks = set()
         query_lower = query.lower()
         for i, chunk in enumerate(chunks):
-            if query_lower in chunk.lower():
+            chunk_lower = chunk.lower()
+            # Exact match
+            if query_lower in chunk_lower:
+                keyword_chunks.add(i)
+            # Fuzzy match (threshold 80)
+            elif fuzz.partial_ratio(query_lower, chunk_lower) >= 80:
                 keyword_chunks.add(i)
 
         # Combine results (union)
         combined_idxs = list(vector_chunks | keyword_chunks)
-        # If no results, fallback to pure keyword search
+        # If no results, fallback to pure fuzzy keyword search
         if not combined_idxs:
             for i, chunk in enumerate(chunks):
-                if query_lower in chunk.lower():
+                chunk_lower = chunk.lower()
+                if query_lower in chunk_lower or fuzz.partial_ratio(query_lower, chunk_lower) >= 80:
                     combined_idxs.append(i)
         # Fix type mismatch: cast FAISS indices to int
         I0_ints = [int(i) for i in I[0]]
