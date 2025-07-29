@@ -184,6 +184,11 @@ def ask():
 
         # Combine results (union)
         combined_idxs = list(vector_chunks | keyword_chunks)
+        # If no results, fallback to pure keyword search
+        if not combined_idxs:
+            for i, chunk in enumerate(chunks):
+                if query_lower in chunk.lower():
+                    combined_idxs.append(i)
         # Fix type mismatch: cast FAISS indices to int
         I0_ints = [int(i) for i in I[0]]
         combined_idxs = sorted(combined_idxs, key=lambda x: I0_ints.index(x) if x in I0_ints else len(D[0]))
