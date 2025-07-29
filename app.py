@@ -169,9 +169,9 @@ def ask():
 
         query_embedding = embed_query(query)
         
-        D, I = index.search(np.array([query_embedding]), k=3)  # Reduced to 3 for maximum speed
-        
-        # Get top 3 chunks directly - skip recency bias for speed
+        D, I = index.search(np.array([query_embedding]), k=8)  # Reduced to 3 for maximum speed
+
+        # Get top 8 chunks directly - skip recency bias for speed
         relevant_chunks = []
         for idx in I[0]:
             if idx < len(chunks):
@@ -204,7 +204,7 @@ Be direct and focused - provide depth without being wordy."""
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=400,  # Further reduced for maximum speed
-            temperature=0.9
+            temperature=0.3
         )
 
         answer = response.choices[0].message.content
