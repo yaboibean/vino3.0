@@ -385,9 +385,12 @@
       }
     }
 
+    // Set your backend URL here for GitHub Pages/global use
+    const BACKEND_URL = window.BACKEND_URL || ""; // e.g. "https://your-backend-url.onrailway.app"
+
     async function updateFollowupQuestions() {
       try {
-        const response = await fetch("/followup", {
+        const response = await fetch(BACKEND_URL + "/followup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ previous_question: lastQuestion })
@@ -452,7 +455,7 @@
       showLoading();
 
       try {
-        const res = await fetch("/ask", {
+        const res = await fetch(BACKEND_URL + "/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question })
