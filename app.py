@@ -188,14 +188,13 @@ def ask():
         I0_ints = [int(i) for i in I[0]]
         combined_idxs = sorted(combined_idxs, key=lambda x: I0_ints.index(x) if x in I0_ints else len(D[0]))
 
-        # Get up to 5 relevant chunks
+        # Get up to 5 relevant chunks (full text, not truncated)
         relevant_chunks = []
         for idx in combined_idxs[:5]:
             chunk = chunks[idx]
-            truncated_chunk = chunk[:800] + "..." if len(chunk) > 800 else chunk
-            relevant_chunks.append(truncated_chunk)
+            relevant_chunks.append(chunk)
 
-        relevant = "\n\n".join(relevant_chunks)
+        relevant = "\n\n".join([chunk[:800] + "..." if len(chunk) > 800 else chunk for chunk in relevant_chunks])
         logger.info(f"📝 Using {len(relevant_chunks)} relevant chunks, total length: {len(relevant)} chars")
         if relevant:
             preview = relevant[:200].replace('\n', ' ')
