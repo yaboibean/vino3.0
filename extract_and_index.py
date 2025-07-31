@@ -1,5 +1,6 @@
 import fitz  # PyMuPDF
-from openai import OpenAI
+
+mport openai
 from dotenv import load_dotenv
 import faiss
 import os
@@ -26,7 +27,7 @@ load_dotenv()
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 if not openai_api_key:
     raise RuntimeError("OPENAI_API_KEY not set in environment or .env file")
-client = OpenAI(api_key=openai_api_key)
+client = openai.OpenAI(api_key=openai_api_key)
 
 def clean_single_chunk(chunk_data):
     """Clean a single chunk - designed for parallel processing"""
