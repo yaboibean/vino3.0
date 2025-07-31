@@ -194,7 +194,7 @@ Question: {query}
 Instructions:
 - Keep responses concise but informative (2-4 paragraphs max)
 - Use bullet points for key information
-- Try to quote directly from magazines when relevant (use quotation marks)
+- Make a very very strong effore to quote directly from magazines when relevant (use quotation marks).
 - If magazines don't contain specific info, state this briefly
 - End with source citations: "Sommelier India, <issue number>, <year>"
 
