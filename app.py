@@ -46,7 +46,7 @@ try:
     
     # Log first few chunks for debugging
     logger.info("📋 First few chunks preview:")
-    for i, chunk in enumerate(chunks[:3]):
+    for i, chunk in enumerate(chunks[:7]):
         preview = chunk[:100].replace('\n', ' ')
         logger.info(f"   Chunk {i}: {preview}...")
 
@@ -169,9 +169,9 @@ def ask():
 
         query_embedding = embed_query(query)
         
-        D, I = index.search(np.array([query_embedding]), k=8)  # Reduced to 3 for maximum speed
+        D, I = index.search(np.array([query_embedding]), k=7)  # Use 7 chunks for better context
 
-        # Get top 8 chunks directly - skip recency bias for speed
+        # Get top 7 chunks directly - skip recency bias for speed
         relevant_chunks = []
         for idx in I[0]:
             if idx < len(chunks):
@@ -335,7 +335,7 @@ def validate_question_has_good_answer(question):
         query_embedding = embed_query(question)
         
         # Search for relevant content
-        D, I = index.search(np.array([query_embedding]), k=3)
+        D, I = index.search(np.array([query_embedding]), k=7)
         
         # Check if we have good matches (distance threshold)
         # Lower distance = better match
